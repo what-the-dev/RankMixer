@@ -2,26 +2,28 @@
 
 PyTorch implementation of RankMixer from ["RankMixer: Scaling Up Ranking Models in Industrial Recommenders"](https://arxiv.org/pdf/2507.15551).
 
-This repository currently provides:
+This repository provides:
 
 - A reusable RankMixer package interface.
 - Core architecture classes (`RankMixer`, `RankMixerBlock`).
 - Token-mixing and per-token dense/MoE layers.
+- Profile constructors for common model sizes (`base`, `moe_small`, `moe_large`).
+- A toy training script for quick experimentation.
+- Smoke tests for profile constructors.
 
-## Current Status
+## Install
 
-The code is ready to import and run from source.
-Packaging metadata, tests, and training scripts are being added in later steps.
-
-## Install (Current Step)
-
-Install runtime dependency:
+Install from source (recommended):
 
 ```bash
-pip install torch
+pip install -e .
 ```
 
-Then run Python from the repository root so `rank_mixer` is importable.
+Install dev extras for tests/linting:
+
+```bash
+pip install -e .[dev]
+```
 
 ## Minimal Usage
 
@@ -44,7 +46,51 @@ logits = model(x)              # (32, 1)
 print(logits.shape)
 ```
 
-## Alternative Per-Token Layer (MoE)
+## Profile Constructors
+
+The package exports three convenience constructors:
+
+- `base`: paper-faithful dense per-token FFN profile (`per_token_type='pffn'`).
+- `moe_small`: smaller MoE profile (`per_token_type='premoe'`, fewer experts).
+- `moe_large`: larger MoE profile (`per_token_type='premoe'`, more capacity).
+
+### Quick Start with Profiles
+
+```python
+import torch
+from rank_mixer import base, moe_small, moe_large
+
+for constructor in (base, moe_small, moe_large):
+	model = constructor()
+	x = torch.randn(2, model.token_dim, model.d_model)
+	y = model(x)
+	print(constructor.__name__, y.shape)
+```
+
+Expected output shapes are `(2, 1)` for all three profiles.
+
+### Profile Defaults
+
+- `base(d_model=128, token_dim=16, num_layers=2, d_out=1, ffn_expansion_ratio=4, eps=1e-5)`
+- `moe_small(d_model=128, token_dim=16, num_layers=2, d_out=1, ffn_expansion_ratio=4, num_experts=4, eps=1e-5)`
+- `moe_large(d_model=192, token_dim=24, num_layers=3, d_out=1, ffn_expansion_ratio=4, num_experts=8, eps=1e-5)`
+
+### Override Defaults
+
+```python
+from rank_mixer import moe_small
+
+model = moe_small(
+	d_model=256,
+	token_dim=32,
+	num_layers=4,
+	num_experts=6,
+)
+```
+
+When overriding values, keep the shape constraints described below.
+
+## Alternative Per-Token Layer (Manual Constructor)
 
 ```python
 import torch
@@ -105,6 +151,29 @@ The current token-mixing implementation enforces:
 - `d_model % num_heads == 0`
 
 If these are not satisfied, initialization raises an error.
+
+## Run Toy Training Script
+
+Train on a synthetic ranking task:
+
+```bash
+python scripts/train_toy_ranking.py
+```
+
+Useful options:
+
+```bash
+python scripts/train_toy_ranking.py --steps 200 --log-every 20
+python scripts/train_toy_ranking.py --single-run
+```
+
+The script runs `pffn` first and, unless `--single-run` is set, also runs a `premoe` ablation.
+
+## Run Tests
+
+```bash
+pytest -q
+```
 
 ## Citation
 

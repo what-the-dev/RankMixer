@@ -161,3 +161,68 @@ class RankMixerBlock(nn.Module):
         x = x + residual
 
         return x
+
+
+def base(
+    d_model: int = 128,
+    token_dim: int = 16,
+    num_layers: int = 2,
+    d_out: int = 1,
+    ffn_expansion_ratio: int = 4,
+    eps: float = 1e-5,
+) -> RankMixer:
+    return RankMixer(
+        d_model=d_model,
+        token_dim=token_dim,
+        num_heads=token_dim,
+        num_layers=num_layers,
+        d_out=d_out,
+        per_token_type='pffn',
+        ffn_expansion_ratio=ffn_expansion_ratio,
+        num_experts=4,
+        eps=eps,
+    )
+
+
+def moe_small(
+    d_model: int = 128,
+    token_dim: int = 16,
+    num_layers: int = 2,
+    d_out: int = 1,
+    ffn_expansion_ratio: int = 4,
+    num_experts: int = 4,
+    eps: float = 1e-5,
+) -> RankMixer:
+    return RankMixer(
+        d_model=d_model,
+        token_dim=token_dim,
+        num_heads=token_dim,
+        num_layers=num_layers,
+        d_out=d_out,
+        per_token_type='premoe',
+        ffn_expansion_ratio=ffn_expansion_ratio,
+        num_experts=num_experts,
+        eps=eps,
+    )
+
+
+def moe_large(
+    d_model: int = 192,
+    token_dim: int = 24,
+    num_layers: int = 3,
+    d_out: int = 1,
+    ffn_expansion_ratio: int = 4,
+    num_experts: int = 8,
+    eps: float = 1e-5,
+) -> RankMixer:
+    return RankMixer(
+        d_model=d_model,
+        token_dim=token_dim,
+        num_heads=token_dim,
+        num_layers=num_layers,
+        d_out=d_out,
+        per_token_type='premoe',
+        ffn_expansion_ratio=ffn_expansion_ratio,
+        num_experts=num_experts,
+        eps=eps,
+    )
