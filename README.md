@@ -1,6 +1,6 @@
 # RankMixer
 
-PyTorch implementation of RankMixer from ["RankMixer: Scaling Up Ranking Models in Industrial Recommenders"](https://arxiv.org/pdf/2507.15551).
+Unofficial PyTorch implementation of RankMixer from ["RankMixer: Scaling Up Ranking Models in Industrial Recommenders"](https://arxiv.org/pdf/2507.15551).
 
 This repository provides:
 
